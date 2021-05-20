@@ -26,6 +26,12 @@ if (isset($_POST["state"])) {
             $iotState->setState($_POST["state"])->save();
             header("Access-Control-Allow-Origin: *");
             http_response_code(200);
+            echo json_encode([
+                "id" => $iotState->getId(),
+                "state" => $iotState->getState(),
+                "finished" => $iotState->isFinished(),
+                "stamp" => (int) $iotState->getStamp()->format("U")
+            ]);
         }
         catch (Exception $e) {
             header("Access-Control-Allow-Origin: *");

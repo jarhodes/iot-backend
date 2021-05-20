@@ -24,6 +24,11 @@ class IotState
     protected $state;
 
     /**
+     * @var boolean $finished Whether the device has finished implementing the state change
+     */
+    protected $finished;
+
+    /**
      * @var DateTime $stamp Timestamp
      */
     protected $stamp;
@@ -47,7 +52,7 @@ class IotState
      * @throws Exception if one is thrown by the DateTime constructor or $this->setState()
      */
     public function fetchLatest() {
-        $q = $this->d->prepare("SELECT `id`, `state`, `stamp` FROM `IotState` ORDER BY `stamp` DESC LIMIT 1");
+        $q = $this->d->prepare("SELECT `id`, `state`, `finished`, `stamp` FROM `IotState` ORDER BY `stamp` DESC LIMIT 1");
         $q->execute();
         $q->store_result();
         if ($q->num_rows == 0) {
@@ -55,11 +60,12 @@ class IotState
             $this->setStamp(new DateTime());
         }
         else {
-            $q->bind_result($id, $state, $stamp);
+            $q->bind_result($id, $state, $finished, $stamp);
             $q->fetch();
             $this->setId($id);
             try {
                 $this->setState($state);
+                $this->setFinished((bool) $finished);
                 $this->setStamp(new DateTime($stamp));
             }
             catch (Exception $e) {
@@ -79,7 +85,7 @@ class IotState
         if (empty($this->id)) {
             throw new Exception("FetchById called but no ID set");
         }
-        $q = $this->d->preapre("SELECT `state`, `stamp` FROM `IotState` WHERE `id` = ? LIMIT 1");
+        $q = $this->d->preapre("SELECT `state`, `finished`, `stamp` FROM `IotState` WHERE `id` = ? LIMIT 1");
         $q->bind_param("i", $this->id);
         $q->execute();
         $q->store_result();
@@ -88,10 +94,11 @@ class IotState
             throw new Exception("FetchById: no such row");
         }
         else {
-            $q->bind_result($state, $stamp);
+            $q->bind_result($state, $finished, $stamp);
             $q->fetch();
             try {
                 $this->setState($state);
+                $this->setFinished((bool) $finished);
                 $this->setStamp(new DateTime($stamp));
             }
             catch (Exception $e) {
@@ -125,8 +132,9 @@ class IotState
         if (!empty($this->id)) {
             throw new Exception("insert() called but ID set");
         }
-        $q = $this->d->prepare("INSERT INTO `IotState` (`state`) VALUES ?");
-        $q->bind_param("s", $this->state);
+        $q = $this->d->prepare("INSERT INTO `IotState` (`state`, `finished`) VALUES (?, ?)");
+        $finished = $this->isFinished() ? 1 : 0;
+        $q->bind_param("si", $this->state, $finished);
         $q->execute();
         $this->id = $q->insert_id;
         $q->close();
@@ -142,8 +150,9 @@ class IotState
         if (empty($this->id)) {
             throw new Exception("update() called but no ID set");
         }
-        $q = $this->d->prepare("UPDATE `IotState` SET `state` = ? WHERE `id` = ? LIMIT 1");
-        $q->bind_param("s", $this->state);
+        $q = $this->d->prepare("UPDATE `IotState` SET `state` = ?, `finished` = ? WHERE `id` = ? LIMIT 1");
+        $finished = $this->isFinished() ? 1 : 0;
+        $q->bind_param("sii", $this->state, $finished, $this->id);
         $q->execute();
         $q->close();
         return $this->fetchById();
@@ -189,6 +198,24 @@ class IotState
         else {
             throw new Exception("Attempt to set a disallowed state");
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function isFinished(): bool
+    {
+        return $this->finished;
+    }
+
+    /**
+     * @param bool $finished
+     * @return IotState
+     */
+    public function setFinished(bool $finished): IotState
+    {
+        $this->finished = $finished;
+        return $this;
     }
 
     /**
