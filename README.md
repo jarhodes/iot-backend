@@ -6,7 +6,7 @@ This contains a simple interface for adding a new state and retrieving the lates
 ## Usage
 HTTP requests as follows:
 
-GET getLatest.php?key={API key}
+GET getState.php?key={API key}
   - Returns a JSON object with the state name and UNIX timestamp
 
 POST postState.php?key={API key}
