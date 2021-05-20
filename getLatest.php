@@ -18,9 +18,6 @@ include "IotCommand.php";
 // Database connection
 $d = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_SCHEMA);
 
-// Connect to the database
-$d = dbConnection();
-
 // Create object
 // The object automatically fetches the most recent command
 $iotCommand = new IotCommand($d);

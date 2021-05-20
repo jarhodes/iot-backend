@@ -44,6 +44,11 @@ class IotState
      */
     public function __construct(mysqli $d) {
         $this->d = $d;
+
+        // Defaults
+        $this->setState("stopped");
+        $this->setFinished(false);
+        $this->setStamp(new DateTime());
     }
 
     /**
@@ -52,12 +57,12 @@ class IotState
      * @throws Exception if one is thrown by the DateTime constructor or $this->setState()
      */
     public function fetchLatest() {
-        $q = $this->d->prepare("SELECT `id`, `state`, `finished`, `stamp` FROM `IotState` ORDER BY `stamp` DESC LIMIT 1");
+        $q = $this->d->prepare("SELECT `id`, `state`, `finished`, `stamp` FROM `iotstate` ORDER BY `stamp` DESC LIMIT 1");
         $q->execute();
         $q->store_result();
         if ($q->num_rows == 0) {
-            $this->setState("stopped");
-            $this->setStamp(new DateTime());
+            $q->close();
+            throw new Exception("No data");
         }
         else {
             $q->bind_result($id, $state, $finished, $stamp);
@@ -85,7 +90,7 @@ class IotState
         if (empty($this->id)) {
             throw new Exception("FetchById called but no ID set");
         }
-        $q = $this->d->preapre("SELECT `state`, `finished`, `stamp` FROM `IotState` WHERE `id` = ? LIMIT 1");
+        $q = $this->d->prepare("SELECT `state`, `finished`, `stamp` FROM `iotstate` WHERE `id` = ? LIMIT 1");
         $q->bind_param("i", $this->id);
         $q->execute();
         $q->store_result();
@@ -132,7 +137,7 @@ class IotState
         if (!empty($this->id)) {
             throw new Exception("insert() called but ID set");
         }
-        $q = $this->d->prepare("INSERT INTO `IotState` (`state`, `finished`) VALUES (?, ?)");
+        $q = $this->d->prepare("INSERT INTO `iotstate` (`state`, `finished`) VALUES (?, ?)");
         $finished = $this->isFinished() ? 1 : 0;
         $q->bind_param("si", $this->state, $finished);
         $q->execute();
@@ -150,7 +155,7 @@ class IotState
         if (empty($this->id)) {
             throw new Exception("update() called but no ID set");
         }
-        $q = $this->d->prepare("UPDATE `IotState` SET `state` = ?, `finished` = ? WHERE `id` = ? LIMIT 1");
+        $q = $this->d->prepare("UPDATE `iotstate` SET `state` = ?, `finished` = ? WHERE `id` = ? LIMIT 1");
         $finished = $this->isFinished() ? 1 : 0;
         $q->bind_param("sii", $this->state, $finished, $this->id);
         $q->execute();

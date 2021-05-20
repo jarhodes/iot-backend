@@ -16,7 +16,7 @@ if (!isset($_GET["key"]) || $_GET["key"] !== API_KEY) {
 include "IotState.php";
 
 // Database connection
-$d = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_SCHEMA);
+$d = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_SCHEMA, DB_PORT);
 
 // Get data from POST string
 if (isset($_POST["state"])) {
@@ -24,6 +24,14 @@ if (isset($_POST["state"])) {
     if (in_array($_POST["state"], $iotState->getStatesAllowed())) {
         try {
             $iotState->setState($_POST["state"])->save();
+        }
+        catch (Exception $e) {
+            header("Access-Control-Allow-Origin: *");
+            http_response_code(400);
+            echo "Error: " . $e->getMessage();
+            exit();
+        }
+        finally {
             header("Access-Control-Allow-Origin: *");
             http_response_code(200);
             echo json_encode([
@@ -32,13 +40,6 @@ if (isset($_POST["state"])) {
                 "finished" => $iotState->isFinished(),
                 "stamp" => (int) $iotState->getStamp()->format("U")
             ]);
-        }
-        catch (Exception $e) {
-            header("Access-Control-Allow-Origin: *");
-            http_response_code(400);
-            echo "Error: " . $e->getMessage();
-        }
-        finally {
             exit();
         }
     }

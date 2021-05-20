@@ -16,7 +16,7 @@ if (!isset($_GET["key"]) || $_GET["key"] !== API_KEY) {
 include "IotState.php";
 
 // Database connection
-$d = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_SCHEMA);
+$d = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_SCHEMA, DB_PORT);
 
 // Get data from POST string
 if (isset($_POST["finished"]) && isset($_POST["id"])) {
@@ -33,7 +33,7 @@ if (isset($_POST["finished"]) && isset($_POST["id"])) {
     }
 
     // Finished as a boolean value
-    $finished = (int) $_POST["finished"] == 1;
+    $finished = (bool) $_POST["finished"];
 
     // Save and output the latest version of the record
     $iotState->setFinished($finished)->save();

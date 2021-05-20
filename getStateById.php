@@ -12,6 +12,13 @@ if (!isset($_GET["key"]) || $_GET["key"] !== API_KEY) {
     exit();
 }
 
+// Require an ID in the query string
+if (!isset($_GET["id"]) || empty($_GET["id"])) {
+    http_response_code(400);
+    exit();
+}
+$id = (int) $_GET["id"];
+
 // Data model
 include "IotState.php";
 
@@ -21,13 +28,12 @@ $d = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_SCHEMA, DB_PORT);
 // Instantiate an IotState object
 $iotState = new IotState($d);
 
-// Fetch the latest state
+// Fetch the requested state
 try {
-    $iotState->fetchLatest();
+    $iotState->setId($id)->fetchById();
 }
 catch (Exception $e) {
-    http_response_code(500);
-    echo "Database error";
+    http_response_code(404);
     exit();
 }
 
@@ -35,9 +41,9 @@ catch (Exception $e) {
 header("Access-Control-Allow-Origin: *");
 http_response_code(200);
 echo json_encode([
-        "id" => $iotState->getId(),
-        "state" => $iotState->getState(),
-        "finished" => $iotState->isFinished(),
-        "stamp" => intval($iotState->getStamp()->format("U")
+    "id" => $iotState->getId(),
+    "state" => $iotState->getState(),
+    "finished" => $iotState->isFinished(),
+    "stamp" => intval($iotState->getStamp()->format("U")
     )]);
 exit();
