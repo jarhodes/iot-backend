@@ -1,6 +1,10 @@
 <?php
 
-
+/**
+ * Class IotState
+ * Handles interactions with the database
+ * @author Jonathan Rhodes
+ */
 class IotState
 {
 

@@ -6,6 +6,12 @@ error_reporting(E_ALL);
 // Constants
 include "secrets.php";
 
+// Require the API key in the query string
+if (!isset($_GET["key"]) || $_GET["key"] !== API_KEY) {
+    http_response_code(403);
+    exit();
+}
+
 // Data model
 include "IotCommand.php";
 
