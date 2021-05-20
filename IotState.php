@@ -155,9 +155,10 @@ class IotState
         if (empty($this->id)) {
             throw new Exception("update() called but no ID set");
         }
-        $q = $this->d->prepare("UPDATE `iotstate` SET `state` = ?, `finished` = ? WHERE `id` = ? LIMIT 1");
+        $q = $this->d->prepare("UPDATE `iotstate` SET `state` = ?, `finished` = ? WHERE `id` = ?");
+        if ($this->d->error) echo $this->d->error;
         $finished = $this->isFinished() ? 1 : 0;
-        $q->bind_param("sii", $this->state, $finished, $this->id);
+        $q->bind_param("sii", $this->state,$finished, $this->id);
         $q->execute();
         $q->close();
         return $this->fetchById();
