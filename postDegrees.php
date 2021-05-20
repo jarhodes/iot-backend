@@ -3,12 +3,14 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Constants
+include "secrets.php";
+
 // Data model
 include "IotCommand.php";
 
 // Database connection
-include "dbConnection.php";
-$d = dbConnection();
+$d = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_SCHEMA);
 
 // Get data from POST string
 if (isset($_POST["degrees"])) {
