@@ -34,12 +34,7 @@ if (isset($_POST["state"])) {
         finally {
             header("Access-Control-Allow-Origin: *");
             http_response_code(200);
-            echo json_encode([
-                "id" => $iotState->getId(),
-                "state" => $iotState->getState(),
-                "finished" => $iotState->isFinished(),
-                "stamp" => (int) $iotState->getStamp()->format("U")
-            ]);
+            echo $iotState->toJson();
             exit();
         }
     }

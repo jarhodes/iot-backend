@@ -41,6 +41,7 @@ class IotState
     /**
      * IotState constructor.
      * @param mysqli $d
+     * @throws Exception if one is thrown by $this->setState() but this should never happen
      */
     public function __construct(mysqli $d) {
         $this->d = $d;
@@ -56,7 +57,7 @@ class IotState
      * @return $this
      * @throws Exception if one is thrown by the DateTime constructor or $this->setState()
      */
-    public function fetchLatest() {
+    public function fetchLatest(): IotState {
         $q = $this->d->prepare("SELECT `id`, `state`, `finished`, `stamp` FROM `iotstate` ORDER BY `stamp` DESC LIMIT 1");
         $q->execute();
         $q->store_result();
@@ -86,7 +87,7 @@ class IotState
      * @return $this
      * @throws Exception if $this->id is not set or if an exception is thrown by the DateTime constructor or $this->setState()
      */
-    public function fetchById() {
+    public function fetchById(): IotState {
         if (empty($this->id)) {
             throw new Exception("FetchById called but no ID set");
         }
@@ -119,7 +120,7 @@ class IotState
      * @return $this
      * @throws Exception if one is thrown by $this->insert() or $this->update()
      */
-    public function save() {
+    public function save(): IotState {
         if (empty($this->id)) {
             return $this->insert();
         }
@@ -133,7 +134,7 @@ class IotState
      * @return $this
      * @throws Exception if $this->id is not empty, because in that case, we should be updating not inserting
      */
-    protected function insert() {
+    protected function insert(): IotState {
         if (!empty($this->id)) {
             throw new Exception("insert() called but ID set");
         }
@@ -151,7 +152,7 @@ class IotState
      * @return $this
      * @throws Exception if $this->id is empty, because in that case, we should be inserting not updating
      */
-    protected function update() {
+    protected function update(): IotState {
         if (empty($this->id)) {
             throw new Exception("update() called but no ID set");
         }
@@ -167,8 +168,7 @@ class IotState
     /**
      * @return int
      */
-    public function getId(): int
-    {
+    public function getId(): int {
         return $this->id;
     }
 
@@ -176,8 +176,7 @@ class IotState
      * @param int $id
      * @return IotState
      */
-    public function setId(int $id): IotState
-    {
+    public function setId(int $id): IotState {
         $this->id = $id;
         return $this;
     }
@@ -185,8 +184,7 @@ class IotState
     /**
      * @return string
      */
-    public function getState(): string
-    {
+    public function getState(): string {
         return $this->state;
     }
 
@@ -195,8 +193,7 @@ class IotState
      * @return IotState
      * @throws Exception if $state is not in the whitelisted commands in $this->statesAllowed
      */
-    public function setState(string $state): IotState
-    {
+    public function setState(string $state): IotState {
         if (in_array($state, $this->statesAllowed)) {
             $this->state = $state;
             return $this;
@@ -209,8 +206,7 @@ class IotState
     /**
      * @return bool
      */
-    public function isFinished(): bool
-    {
+    public function isFinished(): bool {
         return $this->finished;
     }
 
@@ -218,8 +214,7 @@ class IotState
      * @param bool $finished
      * @return IotState
      */
-    public function setFinished(bool $finished): IotState
-    {
+    public function setFinished(bool $finished): IotState {
         $this->finished = $finished;
         return $this;
     }
@@ -227,8 +222,7 @@ class IotState
     /**
      * @return DateTime
      */
-    public function getStamp(): DateTime
-    {
+    public function getStamp(): DateTime {
         return $this->stamp;
     }
 
@@ -236,8 +230,7 @@ class IotState
      * @param DateTime $stamp
      * @return IotState
      */
-    public function setStamp(DateTime $stamp): IotState
-    {
+    public function setStamp(DateTime $stamp): IotState {
         $this->stamp = $stamp;
         return $this;
     }
@@ -245,9 +238,20 @@ class IotState
     /**
      * @return string[]
      */
-    public function getStatesAllowed(): array
-    {
+    public function getStatesAllowed(): array {
         return $this->statesAllowed;
+    }
+
+    /**
+     * @return string
+     */
+    public function toJson(): string {
+        return json_encode([
+            "id" => $this->id,
+            "state" => $this->state,
+            "finished" => $this->finished,
+            "stamp" => intval($this->stamp->format("U"))
+        ]);
     }
 
 }

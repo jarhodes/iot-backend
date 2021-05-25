@@ -39,12 +39,7 @@ if (isset($_POST["finished"]) && isset($_POST["id"])) {
     $iotState->setFinished($finished)->save();
     header("Access-Control-Allow-Origin: *");
     http_response_code(200);
-    echo json_encode([
-        "id" => $iotState->getId(),
-        "state" => $iotState->getState(),
-        "finished" => $iotState->isFinished(),
-        "stamp" => (int) $iotState->getStamp()->format("U")
-    ]);
+    echo $iotState->toJson();
 }
 else {
     header("Access-Control-Allow-Origin: *");

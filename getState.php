@@ -35,10 +35,5 @@ catch (Exception $e) {
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 http_response_code(200);
-echo json_encode([
-        "id" => $iotState->getId(),
-        "state" => $iotState->getState(),
-        "finished" => $iotState->isFinished(),
-        "stamp" => intval($iotState->getStamp()->format("U")
-    )]);
+echo $iotState->toJson();
 exit();
